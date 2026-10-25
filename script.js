@@ -1,47 +1,12 @@
-const products = [
-  ['Cognac Chelsea Boot','Donn-Marc','boots'],
-  ['Black Chelsea Boot','Donn-Marc','boots'],
-  ['Black Suede Chelsea','Clarks','boots'],
-  ['Espresso Chelsea Boot','Donn-Marc','boots'],
-  ['Chocolate Suede Chelsea','Clarks','boots'],
-  ['Navy Suede Boot','Donn-Marc','boots'],
-  ['Brown Harness Boot','Donn-Marc','boots'],
-  ['Tan Suede Chelsea','Clarks','boots'],
-  ['Black Lug Chelsea','Donn-Marc','boots'],
-  ['Tan Leather Loafer','Zoncasterr','loafers'],
-  ['Burgundy Bit Loafer','Zoncasterr','loafers'],
-  ['Wine Leather Loafer','Zoncasterr','loafers'],
-  ['Oxblood Penny Loafer','Zoncasterr','loafers'],
-  ['Burgundy Textured Loafer','Zoncasterr','loafers'],
-  ['Wine Croc Loafer','Zoncasterr','loafers'],
-  ['Black Driving Loafer','Zoncasterr','loafers'],
-  ['White Leather Lace-up','Blackberrys','lace-ups'],
-  ['Tan Leather Lace-up','Zoncasterr','lace-ups'],
-  ['Black Woven Loafer','Zoncasterr','loafers'],
-  ['Black Leather Lace-up','Zoncasterr','lace-ups'],
-  ['Black Low-top Lace-up','Zoncasterr','lace-ups'],
-  ['Black Classic Lace-up','Zoncasterr','lace-ups'],
-  ['Cognac Leather Lace-up','Zoncasterr','lace-ups'],
-  ['Black Panel Lace-up','Zoncasterr','lace-ups']
-];
-const grid = document.querySelector('#product-grid');
-products.forEach(([name,brand,category],index) => {
-  const number = String(index + 1).padStart(2,'0');
-  const card = document.createElement('article');
-  card.className = 'card'; card.dataset.category = category;
-  card.innerHTML = `<button class="card-button" type="button" aria-label="View ${name} photograph"><div class="card-image"><img src="shoe-${number}.jpeg" alt="${name} from the supplied ${brand} collection" loading="lazy"></div><div class="card-meta"><span>${brand}</span><span>${number} / 24</span></div><h3>${name}</h3></button>`;
-  card.querySelector('button').addEventListener('click', () => {
-    document.querySelector('#dialog-image').src = `shoe-${number}.jpeg`;
-    document.querySelector('#dialog-image').alt = `${name} from the supplied ${brand} collection`;
-    document.querySelector('#dialog-caption').textContent = `${name} · ${brand}`;
-    document.querySelector('#photo-dialog').showModal();
-  });
-  grid.append(card);
-});
-document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('.filter').forEach(item => { item.classList.toggle('active', item === button); item.setAttribute('aria-pressed', String(item === button)); });
-  document.querySelectorAll('.card').forEach(card => { card.hidden = button.dataset.filter !== 'all' && card.dataset.category !== button.dataset.filter; });
-}));
-const dialog = document.querySelector('#photo-dialog');
-document.querySelector('.dialog-close').addEventListener('click', () => dialog.close());
-dialog.addEventListener('click', event => { if(event.target === dialog) dialog.close(); });
+const names=['Cognac Chelsea Boot','Black Chelsea Boot','Black Suede Chelsea','Espresso Chelsea Boot','Chocolate Suede Chelsea','Navy Suede Boot','Brown Harness Boot','Tan Suede Chelsea','Black Lug Chelsea','Tan Leather Loafer','Burgundy Bit Loafer','Wine Leather Loafer','Oxblood Penny Loafer','Burgundy Textured Loafer','Wine Croc Loafer','Black Driving Loafer','White Leather Lace-up','Tan Leather Lace-up','Black Woven Loafer','Black Leather Lace-up','Black Low-top Lace-up','Black Classic Lace-up','Cognac Leather Lace-up','Black Panel Lace-up'];
+const products=names.map((name,i)=>({id:i+1,name,category:i<9?'boots':[17,18,20,21,22,23,24].includes(i+1)?'lace-ups':'loafers',image:`shoe-${String(i+1).padStart(2,'0')}.jpeg`}));
+const $=s=>document.querySelector(s);const safeRead=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback}catch{return fallback}};let wishlist=safeRead('sc-wishlist',[]),cart=safeRead('sc-cart',[]),account=safeRead('sc-account',null),filter='all';const save=()=>{localStorage.setItem('sc-wishlist',JSON.stringify(wishlist));localStorage.setItem('sc-cart',JSON.stringify(cart));localStorage.setItem('sc-account',JSON.stringify(account));updateCounts()};const updateCounts=()=>{$('#wish-count').textContent=wishlist.length;$('#cart-count').textContent=cart.length};const product=id=>products.find(p=>p.id===Number(id));const open=id=>{const el=$('#'+id);el.showModal()};
+function render(){const q=$('#search').value.trim().toLowerCase();let shown=products.filter(p=>(filter==='all'||p.category===filter)&&p.name.toLowerCase().includes(q));const sort=$('#sort').value;if(sort==='name')shown.sort((a,b)=>a.name.localeCompare(b.name));if(sort==='reverse')shown.sort((a,b)=>b.name.localeCompare(a.name));$('#results').textContent=`Showing ${shown.length} of ${products.length} styles`;$('#empty').hidden=shown.length!==0;$('#product-grid').innerHTML=shown.map(p=>`<article class="product-card"><button class="product-photo" data-view="${p.id}" aria-label="View ${p.name}"><img src="${p.image}" alt="${p.name}" loading="lazy"></button><div class="product-info"><small>${p.category.replace('-',' ')} · Style ${String(p.id).padStart(2,'0')}</small><h3>${p.name}</h3><div class="product-actions"><button data-view="${p.id}">Quick view ↗</button><button data-wish="${p.id}" class="${wishlist.includes(p.id)?'saved':''}" aria-label="${wishlist.includes(p.id)?'Remove':'Save'} ${p.name}">${wishlist.includes(p.id)?'♥':'♡'}</button></div></div></article>`).join('')}
+function setFilter(value){filter=value;document.querySelectorAll('.chip').forEach(b=>{b.classList.toggle('active',b.dataset.filter===value);b.setAttribute('aria-pressed',String(b.dataset.filter===value))});render()}
+function viewProduct(id){const p=product(id);$('#product-detail').innerHTML=`<div class="product-detail"><img src="${p.image}" alt="${p.name}"><div><span class="eyebrow">STYLE ${String(p.id).padStart(2,'0')} · ${p.category.toUpperCase().replace('-',' ')}</span><h3>${p.name}</h3><p>Explore the original silhouette in this cleaned product photograph. Size, price and availability can be added once confirmed for the live store.</p><p class="demo-label">Shopping interactions are for demonstration only.</p><button class="primary-btn" data-add="${p.id}">Add to demo bag ↗</button><button class="plain-button" data-wish="${p.id}">${wishlist.includes(p.id)?'Remove saved item':'♡ Save for later'}</button></div></div>`;open('product-dialog')}
+function renderList(type){const ids=type==='cart'?cart:wishlist;const target=type==='cart'?'#cart-view':'#wishlist-view';$(target).innerHTML=ids.length?ids.map(id=>{const p=product(id);return `<div class="modal-line"><img src="${p.image}" alt=""><div><b>${p.name}</b><small>${p.category.replace('-',' ')}</small></div><button data-remove="${type}:${id}">Remove</button></div>`}).join('')+(type==='cart'?'<p class="demo-label">Prices and checkout will be available after catalog details and payment setup.</p>':''):`<p class="demo-label">No ${type==='cart'?'shoes in the bag':'saved styles'} yet. Explore the collection to add some.</p>`}
+function renderAccount(){$('#account-view').innerHTML=account?`<p>Welcome, <b>${escapeHtml(account.name)}</b>.</p><p class="demo-label">${escapeHtml(account.email)}</p><p>Your saved styles and demo bag stay in this browser.</p><button class="primary-btn" id="sign-out">Sign out</button>`:`<p>Create a sample profile to preview the account experience. No password is collected.</p><form id="account-form"><label>Name<input name="name" autocomplete="name" required maxlength="80"></label><label>Email<input name="email" type="email" autocomplete="email" required maxlength="120"></label><button class="primary-btn" type="submit">Create demo account ↗</button></form>`}
+const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+document.addEventListener('click',e=>{const view=e.target.closest('[data-view]');if(view)viewProduct(view.dataset.view);const wish=e.target.closest('[data-wish]');if(wish){const id=Number(wish.dataset.wish);wishlist=wishlist.includes(id)?wishlist.filter(x=>x!==id):[...wishlist,id];save();render();if($('#product-dialog').open&&view===null)viewProduct(id);if($('#wishlist-dialog').open)renderList('wishlist')}const add=e.target.closest('[data-add]');if(add){const id=Number(add.dataset.add);if(!cart.includes(id))cart.push(id);save();$('#product-dialog').close();renderList('cart');open('cart-dialog')}const remove=e.target.closest('[data-remove]');if(remove){const [type,id]=remove.dataset.remove.split(':');if(type==='cart')cart=cart.filter(x=>x!==Number(id));else wishlist=wishlist.filter(x=>x!==Number(id));save();render();renderList(type)}const close=e.target.closest('[data-close]');if(close)$('#'+close.dataset.close).close();const jump=e.target.closest('[data-jump-filter]');if(jump)setFilter(jump.dataset.jumpFilter)});
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));document.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.filter)));$('#search').addEventListener('input',render);$('#sort').addEventListener('change',render);$('#cart-open').addEventListener('click',()=>{renderList('cart');open('cart-dialog')});$('#wishlist-open').addEventListener('click',()=>{renderList('wishlist');open('wishlist-dialog')});$('#account-open').addEventListener('click',()=>{renderAccount();open('account-dialog')});$('#menu-toggle').addEventListener('click',()=>{const expanded=$('#nav').classList.toggle('open');$('#menu-toggle').setAttribute('aria-expanded',String(expanded))});$('#nav').addEventListener('click',e=>{if(e.target.closest('a')){$('#nav').classList.remove('open');$('#menu-toggle').setAttribute('aria-expanded','false')}});
+document.addEventListener('submit',e=>{if(e.target.id==='account-form'){e.preventDefault();const f=new FormData(e.target);account={name:String(f.get('name')).trim(),email:String(f.get('email')).trim()};save();renderAccount()}if(e.target.id==='contact-form'){e.preventDefault();$('#contact-status').textContent='Demo preview complete. No message was sent. Connect a contact service before launch.';e.target.reset()}if(e.target.id==='newsletter-form'){e.preventDefault();$('#newsletter-status').textContent='Demo preview only. No subscription was created.';e.target.reset()}});document.addEventListener('click',e=>{if(e.target.id==='sign-out'){account=null;save();renderAccount()}});updateCounts();render();
